@@ -5,7 +5,7 @@ import { Platform, Pressable, PressableProps, View, ViewStyle } from 'react-nati
 
 import { TextClassContext } from '~/components/nativewindui/Text';
 import { cn } from '~/lib/cn';
-import { useColorScheme } from '~/lib/useColorScheme';
+import { useColorScheme } from '~/hooks/useColorScheme';
 import { COLORS } from '~/theme/colors';
 
 const buttonVariants = cva('flex-row items-center justify-center gap-2', {

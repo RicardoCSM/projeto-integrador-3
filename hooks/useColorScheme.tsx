@@ -31,9 +31,6 @@ function useColorScheme() {
   };
 }
 
-/**
- * Set the Android navigation bar color based on the color scheme.
- */
 function useInitialAndroidBarSync() {
   const { colorScheme } = useColorScheme();
   React.useEffect(() => {
