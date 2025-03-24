@@ -7,8 +7,8 @@ import { ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
-import { ThemeToggle } from '~/components/theme-togle';
+import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
+import { tokenCache } from '~/cache';
 import { useColorScheme, useInitialAndroidBarSync } from '~/hooks/useColorScheme';
 import { NAV_THEME } from '~/theme';
 
@@ -19,25 +19,36 @@ export {
 export default function RootLayout() {
   useInitialAndroidBarSync();
   const { colorScheme, isDarkColorScheme } = useColorScheme();
+  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
+
+  if (!publishableKey) {
+    throw new Error(
+      'Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env',
+    )
+  }
 
   return (
     <>
-      <StatusBar
-        key={`root-status-bar-${isDarkColorScheme ? 'light' : 'dark'}`}
-        style={isDarkColorScheme ? 'light' : 'dark'}
-      />
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <BottomSheetModalProvider>
-          <ActionSheetProvider>
-            <NavThemeProvider value={NAV_THEME[colorScheme]}>
-              <Stack screenOptions={SCREEN_OPTIONS}>
-                <Stack.Screen name="(drawer)" options={DRAWER_OPTIONS} />
-                <Stack.Screen name="modal" options={MODAL_OPTIONS} />
-              </Stack>
-            </NavThemeProvider>
-          </ActionSheetProvider>
-        </BottomSheetModalProvider>
-      </GestureHandlerRootView>
+      <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
+        <ClerkLoaded>
+          <StatusBar
+            key={`root-status-bar-${isDarkColorScheme ? 'light' : 'dark'}`}
+            style={isDarkColorScheme ? 'light' : 'dark'}
+          />
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <BottomSheetModalProvider>
+              <ActionSheetProvider>
+                <NavThemeProvider value={NAV_THEME[colorScheme]}>
+                  <Stack screenOptions={SCREEN_OPTIONS}>
+                    <Stack.Screen name="(auth)/sign-in" options={SIGN_IN_OPTIONS} />
+                    <Stack.Screen name="(auth)/(drawer)" options={DRAWER_OPTIONS} />
+                  </Stack>
+                </NavThemeProvider>
+              </ActionSheetProvider>
+            </BottomSheetModalProvider>
+          </GestureHandlerRootView>
+        </ClerkLoaded>
+      </ClerkProvider>
     </>
   );
 }
@@ -46,13 +57,10 @@ const SCREEN_OPTIONS = {
   animation: 'ios_from_right',
 } as const;
 
-const DRAWER_OPTIONS = {
+const SIGN_IN_OPTIONS = {
   headerShown: false,
 } as const;
 
-const MODAL_OPTIONS = {
-  presentation: 'modal',
-  animation: 'fade_from_bottom',
-  title: 'Settings',
-  headerRight: () => <ThemeToggle />,
+const DRAWER_OPTIONS = {
+  headerShown: false,
 } as const;
